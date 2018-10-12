@@ -11,13 +11,15 @@ os:
 
 before_install:
   # install gcc to work around https://github.com/golang/go/issues/28065
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install mingw && which gcc ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then choco install mingw && export PATH=/c/tools/mingw64/bin:$PATH && which gcc ; fi
   - go get -u github.com/kardianos/govendor
 
 script:
   # govendor linting: skip on windows to work around https://github.com/kardianos/govendor/issues/233
   - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then govendor status ; fi
-  # gofmt linting: skip on windows to work around line ending differences
+  # gofmt linting: skip on windows to work around git line ending differences
   - if [[ "$TRAVIS_OS_NAME" != "windows" ]]; then diff -u <(echo -n) <(gofmt -d $(git ls-files '*.go' | grep -v ^vendor/)) ; fi
   - go vet ./...
   - go test -race ./...
+  - make
+  - ./aws-vault --version
